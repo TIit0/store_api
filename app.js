@@ -1,10 +1,17 @@
+// express
 const express = require("express");
 const app = express();
+
+// packages
 require("dotenv").config();
+require("express-async-errors");
+
+
 const errorHandlerMiddleware = require("./middleware/error-handler");
 const notFoundMiddleware = require("./middleware/not-found");
 const connectDB = require("./db/connect")
-const productsRouter = require("./routes/products")
+const productsRouter = require("./routes/productsRoutes")
+
 // parser
 app.use(express.json());
 
