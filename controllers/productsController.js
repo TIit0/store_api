@@ -20,7 +20,7 @@ const getProducts = async (req, res) => {
 
 
 console.log(queryObject)
-    const products = await productSchema.find(queryObject)
+    const products = await productSchema.find(queryObject).sort('-name')
     return res.status(200).json({ msg: "testing routes", data: products })
 }
 
