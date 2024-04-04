@@ -1,11 +1,12 @@
 
 const { query } = require("express");
-const productSchema = require("../models/products")
+const productSchema = require("../models/products");
+const products = require("../models/products");
 
 const getProducts = async (req, res) => {
-    const { featured, company, name } = req.query;
+    const { featured, company, name, sort: sortBy, fields } = req.query;
     const queryObject = {};
-
+console.log(req.query)
     if (featured) {
         queryObject.featured = featured === "true" ? true : false;
     }
@@ -19,8 +20,25 @@ const getProducts = async (req, res) => {
     }
 
 
-console.log(queryObject)
-    const products = await productSchema.find(queryObject).sort('-name')
+
+    let results =  productSchema.find(queryObject);
+
+    // sorting logic
+    if ( sortBy ) {
+        const sortList = sortBy.split(",").join(" ")
+        results = results.sort(sortList)
+    } else {
+        results = results.sort("createdAt")
+    }
+
+    // field filtering logic
+    if ( fields ) {
+        const fieldsList = fields.split(",").join(" ");
+        results = results.select(fieldsList)
+    }
+
+
+    const products = await results
     return res.status(200).json({ msg: "testing routes", data: products })
 }
 
