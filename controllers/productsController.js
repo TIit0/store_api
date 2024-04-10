@@ -20,8 +20,11 @@ const getProducts = async (req, res) => {
     }
 
     if (numericFilters) {
+
+        // regex to separate operators
         const regex = /\b(<|>|>=|=|<=)\b/g
 
+        // object map technique # hashmap
         const operatorMap = {
             ">": "$gt",
             ">=": "$gte",
@@ -30,13 +33,28 @@ const getProducts = async (req, res) => {
             "<=": "$lte",
         }
 
+        /* 
+        replace operators with mongoose Query and Projection operators:
+        https://www.mongodb.com/docs/manual/reference/operator/query/#query-and-projection-operators 
+        */
         let filters = numericFilters.replace(
             regex,
             (match) => `-${operatorMap[match]}-`
         );
-        console.log(filters)
-    }
 
+
+        const options = ["price", "rating"];
+
+        // manipulate data structure to match projection operators
+        filters = filters.split(",").forEach((item) => {
+            const [field, operator, value] = item.split("-");
+
+            // set queryObject with required operators and query structure 
+            if(options.includes(field)) {
+                queryObject[field] = { [operator]: Number(value) }
+            }
+        })
+    }
 
     let results = productSchema.find(queryObject);
 
