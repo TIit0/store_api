@@ -4,7 +4,7 @@ const productSchema = require("../models/products");
 const products = require("../models/products");
 
 const getProducts = async (req, res) => {
-    const { featured, company, name, sort: sortBy, fields, limit } = req.query;
+    const { featured, company, name, sort: sortBy, fields, limit = 10, page = 1 } = req.query;
     const queryObject = {};
 
     if (featured) {
@@ -18,7 +18,6 @@ const getProducts = async (req, res) => {
     if ( name ) {
         queryObject.name = {$regex: name, $options: "i"}
     }
-
 
 
     let results =  productSchema.find(queryObject);
@@ -37,15 +36,18 @@ const getProducts = async (req, res) => {
         results = results.select(fieldsList)
     }
 
+    const skip = (page -1) * limit
+
     // hit limiting logic
     if (limit) {
-        results = results.limit(Number(limit));
+        results = results.skip(skip).limit(Number(limit));
     }
 
-    // results creates the database query and we await for products for the database response bades on the query
+    
 
+
+    // results creates the database query and we await for products for the database response bades on the query
     const products = await results
-    console.log(products)
     return res.status(200).json({ NumHits: products.length, data: products })
 }
 
