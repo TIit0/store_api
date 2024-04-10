@@ -4,26 +4,44 @@ const productSchema = require("../models/products");
 const products = require("../models/products");
 
 const getProducts = async (req, res) => {
-    const { featured, company, name, sort: sortBy, fields, limit = 10, page = 1 } = req.query;
+    const { featured, company, name, sort: sortBy, fields, limit = 10, page = 1, numericFilters } = req.query;
     const queryObject = {};
 
     if (featured) {
         queryObject.featured = featured === "true" ? true : false;
     }
 
-    if ( company ) {
+    if (company) {
         queryObject.company = company;
     }
 
-    if ( name ) {
-        queryObject.name = {$regex: name, $options: "i"}
+    if (name) {
+        queryObject.name = { $regex: name, $options: "i" }
+    }
+
+    if (numericFilters) {
+        const regex = /\b(<|>|>=|=|<=)\b/g
+
+        const operatorMap = {
+            ">": "$gt",
+            ">=": "$gte",
+            "=": "$eq",
+            "<": "$lt",
+            "<=": "$lte",
+        }
+
+        let filters = numericFilters.replace(
+            regex,
+            (match) => `-${operatorMap[match]}-`
+        );
+        console.log(filters)
     }
 
 
-    let results =  productSchema.find(queryObject);
+    let results = productSchema.find(queryObject);
 
     // sorting logic
-    if ( sortBy ) {
+    if (sortBy) {
         const sortList = sortBy.split(",").join(" ")
         results = results.sort(sortList)
     } else {
@@ -31,19 +49,19 @@ const getProducts = async (req, res) => {
     }
 
     // field filtering logic
-    if ( fields ) {
+    if (fields) {
         const fieldsList = fields.split(",").join(" ");
         results = results.select(fieldsList)
     }
 
-    const skip = (page -1) * limit
+    const skip = (page - 1) * limit
 
     // hit limiting logic
     if (limit) {
         results = results.skip(skip).limit(Number(limit));
     }
 
-    
+
 
 
     // results creates the database query and we await for products for the database response bades on the query
